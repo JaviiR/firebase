@@ -4,28 +4,7 @@
  * and open the template in the editor.
  */
 package com.mycompany.firebase;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-
-import com.google.api.gax.paging.Page;
-import com.google.auth.oauth2.GoogleCredentials;
-import com.google.cloud.storage.BlobId;
-import com.google.cloud.storage.BlobInfo;
-import com.google.cloud.storage.Bucket;
-
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.FirebaseOptions;
-import com.google.firebase.cloud.StorageClient;
 import com.mycompany.firebase.CRUD.uploaderImg;
-import com.mycompany.firebase.conection.conexion;
-
-import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.StorageOptions;
-
-import java.nio.file.Paths;
-
-import javax.annotation.processing.FilerException;
 
 public class Principal {
 
