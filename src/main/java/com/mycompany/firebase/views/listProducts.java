@@ -5,41 +5,36 @@
  */
 package com.mycompany.firebase.views;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
+
 import java.util.List;
 import java.util.Map;
-import java.awt.Image;
 
-import javax.imageio.ImageIO;
 
-import java.awt.Component;
-import java.awt.image.BufferedImage;
+
+
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.JComponent;
+
 import javax.swing.JLabel;
-import javax.swing.JTable;
-import javax.swing.SwingConstants;
+
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.DefaultTableCellRenderer;
+
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
+
 
 import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.CollectionReference;
+
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.firebase.cloud.FirestoreClient;
 import com.mycompany.firebase.CRUD.downloaderImg;
 import com.mycompany.firebase.conection.conexion;
 
-import io.opencensus.common.ServerStatsFieldEnums.Size;
+
 
 /**
  *
