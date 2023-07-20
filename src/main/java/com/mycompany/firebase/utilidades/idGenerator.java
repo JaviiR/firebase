@@ -7,7 +7,7 @@ import java.util.List;
 import com.mycompany.firebase.CRUD.uploaderImg;
 
 public class idGenerator {
-
+    static final String bucketName="fir-java-dbb1c.appspot.com";
     /**
      * 
      * @return genera un nombre automaticamente tipo ID y si hay imagenes borradas
@@ -15,7 +15,7 @@ public class idGenerator {
      */
     public static String generar() {
         String idGenerado = "";
-        List<String> listaRemota = uploaderImg.listNamesImgs("fir-java-dbb1c.appspot.com");// lista de ids que estan en
+        List<String> listaRemota = uploaderImg.listNamesImgs(bucketName);// lista de ids que estan en
                                                                                            // la firestore
         List<String> listVacios = new ArrayList<>();// lista de ids que no estan siendo usados
 

@@ -8,7 +8,6 @@ import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.WriteResult;
 import com.google.firebase.cloud.FirestoreClient;
-import com.mycompany.firebase.conection.conexion;
 
 public class uploaderFireStore {
 
