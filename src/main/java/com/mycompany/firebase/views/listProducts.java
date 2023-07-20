@@ -6,34 +6,24 @@
 package com.mycompany.firebase.views;
 
 import java.util.ArrayList;
-
 import java.util.List;
 import java.util.Map;
-
-
-
-
+import java.util.HashMap;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-
 import javax.swing.JLabel;
-
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 
-
 import com.google.api.core.ApiFuture;
-
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.firebase.cloud.FirestoreClient;
 import com.mycompany.firebase.CRUD.downloaderImg;
 import com.mycompany.firebase.conection.conexion;
-
 
 
 /**
@@ -42,6 +32,7 @@ import com.mycompany.firebase.conection.conexion;
  */
 public class listProducts extends javax.swing.JFrame {
     static final String bucketName = "fir-java-dbb1c.appspot.com";
+    static Map<String,byte[]> imagenes=new HashMap<>();
 
     /**
      * Creates new form listProducts
@@ -150,8 +141,6 @@ public class listProducts extends javax.swing.JFrame {
         } //
     }
 
-    
-
     /**
      * @param args the command line arguments
      */
@@ -241,6 +230,7 @@ public class listProducts extends javax.swing.JFrame {
             listaTemp.add(precio);
             listaTemp.add(stock);
             listaTemp.add(img);
+            llenarMapImgs(img);
             System.out.println("Datos descargados exitosamente");
         } catch (Exception e) {
             System.out.println("ERROR: " + e.getMessage());
@@ -259,17 +249,6 @@ public class listProducts extends javax.swing.JFrame {
         for (String documento : getAllDocuments(NameCollection)) {
             Object[] arrayObjeto = DownloadDataByCollection(NameCollection, documento).toArray();
             model.addRow(arrayObjeto);
-            /*
-             * try {
-             * byte[] imageByte =
-             * downloaderImg.downloadImageBytes("fir-java-dbb1c.appspot.com",
-             * objeto[3].toString());
-             * objeto[3] = getImageIcon(imageByte);
-             * 
-             * } catch (Exception e) {
-             * System.out.println("ERROR: " + e.getMessage());
-             * }
-             */
 
         }
 
@@ -282,74 +261,19 @@ public class listProducts extends javax.swing.JFrame {
         column.setResizable(false);
         column.setPreferredWidth(0);
 
-        // Crear el TableCellRenderer personalizado para mostrar la imagen
-        // tblProducts.getColumnModel().getColumn(3).setCellRenderer(new
-        // ImageRenderer());
-        // Crear el TableCellRenderer personalizado para modificar las dimensiones de
-        // las filas
-        // tblProducts.setDefaultRenderer(Object.class, new CustomTableCellRenderer());
-        // Modificar las dimensiones de las filas
-        // tblProducts.setRowHeight(0, 50); // Establecer la altura de la primera fila
-        // en 50 píxeles
-        // tblProducts.setRowHeight(1, 200); // Establecer la altura de la tercera fila
-        // en 30 píxeles
-
     }
 
     private void mostrarImgInLabel(int fila, JLabel label) {
-
-        byte[] imgBytes = null;
-        try {
+        String nameImg=tblProducts.getValueAt(fila, 3).toString();
+        byte[] imgBytes = imagenes.get(nameImg);
+        /*try {
             imgBytes = downloaderImg.downloadImageBytes(bucketName, tblProducts.getValueAt(fila, 3).toString());
         } catch (Exception e) {
             System.out.println("ERROR: en listProducts.mostrarImgInLabel");
-        }
+        }*/
+
         lblImagen.setIcon(CrearImg(new ImageIcon(imgBytes), lblImagen));
     }
-
-    // Método para obtener el ImageIcon a partir de la ruta de la imagen
-    private static ImageIcon getImageIcon(byte[] ImageByte) {
-        return new ImageIcon(ImageByte);
-    }
-
-    // TableCellRenderer personalizado para mostrar la imagen en la celda
-    /*
-     * static class ImageRenderer extends DefaultTableCellRenderer {
-     * 
-     * @Override
-     * public Component getTableCellRendererComponent(JTable table, Object value,
-     * boolean isSelected,
-     * boolean hasFocus, int row, int column) {
-     * if (value instanceof ImageIcon) {
-     * setIcon((ImageIcon) value);
-     * } else {
-     * setText((value != null) ? value.toString() : "");
-     * setIcon(null);
-     * }
-     * setHorizontalAlignment(SwingConstants.CENTER);
-     * setVerticalAlignment(SwingConstants.CENTER);
-     * return this;
-     * }
-     * }
-     */
-
-    // TableCellRenderer personalizado para modificar las dimensiones de las filas
-    /*
-     * static class CustomTableCellRenderer extends DefaultTableCellRenderer {
-     * 
-     * @Override
-     * public Component getTableCellRendererComponent(JTable table, Object value,
-     * boolean isSelected, boolean hasFocus,
-     * int row, int column) {
-     * Component component = super.getTableCellRendererComponent(table, value,
-     * isSelected, hasFocus, row, column);
-     * 
-     * // Modificar aquí las dimensiones del componente según la fila y columna
-     * 
-     * return component;
-     * }
-     * }
-     */
 
     /**
      * 
@@ -363,5 +287,14 @@ public class listProducts extends javax.swing.JFrame {
                 img.getImage().getScaledInstance(contenedor.getWidth(), contenedor.getHeight(), contenedor.getWidth()));
         return icono;
 
+    }
+
+    private void llenarMapImgs(String nombreImg){
+        try {
+            imagenes.put(nombreImg, downloaderImg.downloadImageBytes(bucketName, nombreImg));
+        } catch (Exception e) {
+            System.out.println("ERROR en llenarMapImgs: "+e.getMessage());
+        }
+            
     }
 }
