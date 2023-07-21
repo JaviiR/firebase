@@ -6,28 +6,25 @@
 package com.mycompany.firebase.views;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-
 import javax.swing.JLabel;
-
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 
 import com.google.api.core.ApiFuture;
-
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.firebase.cloud.FirestoreClient;
-import com.mycompany.firebase.CRUD.downloaderImg;
+import com.mycompany.firebase.CRUD.CRUDStorage;
 import com.mycompany.firebase.conection.conexion;
+
 
 /**
  *
@@ -294,7 +291,7 @@ public class listProducts extends javax.swing.JFrame {
 
     private void llenarMapImgs(String nombreImg){
         try {
-            imagenes.put(nombreImg, downloaderImg.downloadImageBytes(bucketName, nombreImg));
+            imagenes.put(nombreImg, CRUDStorage.downloadImageBytes(bucketName, nombreImg));
         } catch (Exception e) {
             System.out.println("ERROR en llenarMapImgs: "+e.getMessage());
         }

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.mycompany.firebase.CRUD.uploaderImg;
+import com.mycompany.firebase.CRUD.CRUDStorage;
 
 public class idGenerator {
     static final String bucketName="fir-java-dbb1c.appspot.com";
@@ -15,7 +15,7 @@ public class idGenerator {
      */
     public static String generar() {
         String idGenerado = "";
-        List<String> listaRemota = uploaderImg.listNamesImgs(bucketName);// lista de ids que estan en
+        List<String> listaRemota = CRUDStorage.listNamesImgs(bucketName);// lista de ids que estan en
                                                                                            // la firestore
         List<String> listVacios = new ArrayList<>();// lista de ids que no estan siendo usados
 
@@ -68,23 +68,7 @@ public class idGenerator {
             idGenerado = "000001";
         }
 
-        /*
-         * List<String> listaRemota = new ArrayList<>();
-         * listaRemota.add("000001");
-         * listaRemota.add("000002");
-         * listaRemota.add("000003");
-         * listaRemota.add("000004");
-         * listaRemota.add("000007");
-         * listaRemota.add("000012");
-         * listaRemota.add("000005");
-         * listaRemota.add("000088");
-         * listaRemota.add("000032");
-         * listaRemota.add("000010");
-         * listaRemota.add("000022");
-         * listaRemota.add("000006");
-         * listaRemota.add("000008");
-         * listaRemota.add("000009");
-         */
+        
 
         return idGenerado;
     }
