@@ -7,7 +7,8 @@ import java.util.List;
 import com.mycompany.firebase.CRUD.CRUDStorage;
 
 public class idGenerator {
-    static final String bucketName="fir-java-dbb1c.appspot.com";
+    static final String bucketName = "fir-java-dbb1c.appspot.com";
+
     /**
      * 
      * @return genera un nombre automaticamente tipo ID y si hay imagenes borradas
@@ -15,11 +16,12 @@ public class idGenerator {
      */
     public static String generar() {
         String idGenerado = "";
-        List<String> listaRemota = CRUDStorage.listNamesImgs(bucketName);// lista de ids que estan en
-                                                                                           // la firestore
+        List<String> listaRemota = null;
+        listaRemota = CRUDStorage.listNamesImgs();// lista de ids que estan en
+                                                      // la firestore
         List<String> listVacios = new ArrayList<>();// lista de ids que no estan siendo usados
 
-        if (listaRemota.size() > 1 && listaRemota != null) {
+        if (listaRemota.size() > 1) {
             Integer[] listaSinCeros = new Integer[listaRemota.size()];
 
             for (int i = 0; i <= listaRemota.size() - 1; i++) {
@@ -67,8 +69,6 @@ public class idGenerator {
         } else {
             idGenerado = "000001";
         }
-
-        
 
         return idGenerado;
     }
