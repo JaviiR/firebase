@@ -4,27 +4,11 @@
  * and open the template in the editor.
  */
 package com.mycompany.firebase;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-
-import javax.swing.JOptionPane;
 import javax.swing.UIManager;
-
-import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.DocumentSnapshot;
-import com.google.firebase.cloud.FirestoreClient;
-import com.google.firebase.cloud.StorageClient;
-import com.mycompany.firebase.CRUD.CRUDStorage;
-import com.mycompany.firebase.conection.conexion;
 import com.mycompany.firebase.views.listProducts;
-
+/**
+ * @apiNote si la aplicacion no corre talvez se deba que falta la carpeta target o le falta algo a la carpeta target(creo que es donde estan las clases compiladas aun estoy investigando), en ese caso atravez de la consola/terminal de tu IDE escribir el comando "mvn clean install"(sin las comillas)(esto borra la carpeta target y la crea denuevo con los recursos necesarios)
+ */
 public class Principal {
     
 
