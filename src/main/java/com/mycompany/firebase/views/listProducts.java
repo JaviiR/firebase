@@ -13,6 +13,8 @@ import java.util.HashMap;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
@@ -22,27 +24,36 @@ import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.firebase.cloud.FirestoreClient;
+import com.mycompany.firebase.CRUD.CRUDFireStore;
 import com.mycompany.firebase.CRUD.CRUDStorage;
 import com.mycompany.firebase.conection.conexion;
-
+import com.mycompany.firebase.utilidades.TextPrompt;
+import java.awt.Font;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 /**
  *
  * @author ALEX
  */
 public class listProducts extends javax.swing.JFrame {
-    static final String bucketName = "fir-java-dbb1c.appspot.com";
-    static Map<String,byte[]> imagenes=new HashMap<>();
+    private CRUDFireStore firestoreClass;
+    private Map<String, byte[]> imagenes = new HashMap<>();
+    private final int tamaño = 20;
+    private String nameImgSelect = null;
+    private String IdProduct = null;
+    DefaultTableModel model = null;
+    private int selectedRow = 0;
 
     /**
      * Creates new form listProducts
      */
     public listProducts() {
-        conexion.Conectar();
+        conexion.getConexion();
         initComponents();
+        CambiosIniciales();
         llenarTabla("products");
         this.setLocationRelativeTo(null);
-
     }
 
     /**
@@ -54,6 +65,8 @@ public class listProducts extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated
     // <editor-fold defaultstate="collapsed" desc="Generated
     // <editor-fold defaultstate="collapsed" desc="Generated
+    // <editor-fold defaultstate="collapsed" desc="Generated
+    // <editor-fold defaultstate="collapsed" desc="Generated
     // Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
@@ -61,8 +74,13 @@ public class listProducts extends javax.swing.JFrame {
         jScrollPane2 = new javax.swing.JScrollPane();
         tblProducts = new javax.swing.JTable();
         lblImagen = new javax.swing.JLabel();
+        lblNombreProduct = new javax.swing.JTextField();
+        btnEditar = new javax.swing.JButton();
+        btnEliminar = new javax.swing.JButton();
+        btnNuevo = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setPreferredSize(new java.awt.Dimension(1188, 531));
 
         tblProducts.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][] {
@@ -79,14 +97,13 @@ public class listProducts extends javax.swing.JFrame {
                 tblProductsMouseClicked(evt);
             }
         });
-        // Agregar el ListSelectionListener a la tabla
-        tblProducts.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent evt) {
-                tblProductsValueChanged(evt);
-            }
-        });
         jScrollPane2.setViewportView(tblProducts);
+
+        btnEditar.setText("EDITAR");
+
+        btnEliminar.setText("ELIMINAR");
+
+        btnNuevo.setText("NUEVO");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -94,23 +111,49 @@ public class listProducts extends javax.swing.JFrame {
                 jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addContainerGap()
-                                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 1168, Short.MAX_VALUE)
-                                .addContainerGap())
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(lblImagen, javax.swing.GroupLayout.PREFERRED_SIZE, 243,
+                                .addGroup(jPanel1Layout
+                                        .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                        .addGroup(jPanel1Layout.createSequentialGroup()
+                                                .addComponent(lblNombreProduct, javax.swing.GroupLayout.PREFERRED_SIZE,
+                                                        448, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGap(31, 31, 31)
+                                                .addComponent(btnNuevo, javax.swing.GroupLayout.PREFERRED_SIZE, 112,
+                                                        javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                                .addComponent(btnEditar, javax.swing.GroupLayout.PREFERRED_SIZE, 112,
+                                                        javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(btnEliminar, javax.swing.GroupLayout.PREFERRED_SIZE, 112,
+                                                        javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 831,
+                                                javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGap(18, 18, 18)
+                                .addComponent(lblImagen, javax.swing.GroupLayout.PREFERRED_SIZE, 301,
                                         javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(41, 41, 41)));
+                                .addContainerGap(18, Short.MAX_VALUE)));
         jPanel1Layout.setVerticalGroup(
                 jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                                .addContainerGap(24, Short.MAX_VALUE)
-                                .addComponent(lblImagen, javax.swing.GroupLayout.PREFERRED_SIZE, 205,
-                                        javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
-                                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 386,
-                                        javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addContainerGap()));
+                        .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGap(25, 25, 25)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                        .addComponent(btnEliminar, javax.swing.GroupLayout.PREFERRED_SIZE, 45,
+                                                javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(lblNombreProduct, javax.swing.GroupLayout.PREFERRED_SIZE, 45,
+                                                javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(btnEditar, javax.swing.GroupLayout.PREFERRED_SIZE, 45,
+                                                javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(btnNuevo, javax.swing.GroupLayout.PREFERRED_SIZE, 45,
+                                                javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGap(19, 19, 19)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addGroup(jPanel1Layout.createSequentialGroup()
+                                                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 386,
+                                                        javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addContainerGap(22, Short.MAX_VALUE))
+                                        .addGroup(jPanel1Layout.createSequentialGroup()
+                                                .addComponent(lblImagen, javax.swing.GroupLayout.DEFAULT_SIZE,
+                                                        javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addGap(26, 26, 26)))));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -120,15 +163,21 @@ public class listProducts extends javax.swing.JFrame {
                                 javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
         layout.setVerticalGroup(
                 layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE,
-                                javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE,
+                                        javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, 0)));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void tblProductsMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_tblProductsMouseClicked
-
+        // Obtener la fila seleccionada
+        selectedRow = tblProducts.getSelectedRow();
         mostrarImgInLabel(tblProducts.getSelectedRow(), lblImagen);
+        IdProduct = tblProducts.getValueAt(selectedRow, 4).toString();
+
     }// GEN-LAST:event_tblProductsMouseClicked
 
     private void tblProductsValueChanged(ListSelectionEvent evt) {
@@ -136,60 +185,106 @@ public class listProducts extends javax.swing.JFrame {
         // mover la fila)
         if (!evt.getValueIsAdjusting()) {
             // Obtener la fila seleccionada
-            int selectedRow = tblProducts.getSelectedRow();
-            mostrarImgInLabel(selectedRow, lblImagen);
+            if (tblProducts.getSelectedRow() >= 0) {
+                selectedRow = tblProducts.getSelectedRow();
+                mostrarImgInLabel(selectedRow, lblImagen);
+                IdProduct = tblProducts.getValueAt(selectedRow, 4).toString();
+            } else {
+                lblImagen.setIcon(CrearImg(new ImageIcon("imgs/images.png"), lblImagen));
+            }
+
         } //
     }
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        // <editor-fold defaultstate="collapsed" desc=" Look and feel setting code
-        // (optional) ">
-        /*
-         * If Nimbus (introduced in Java SE 6) is not available, stay with the default
-         * look and feel.
-         * For details see
-         * http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(listProducts.class.getName()).log(java.util.logging.Level.SEVERE, null,
-                    ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(listProducts.class.getName()).log(java.util.logging.Level.SEVERE, null,
-                    ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(listProducts.class.getName()).log(java.util.logging.Level.SEVERE, null,
-                    ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(listProducts.class.getName()).log(java.util.logging.Level.SEVERE, null,
-                    ex);
-        }
-        // </editor-fold>
+    private void btnEditarClicked(MouseEvent evt) {
+        if (tblProducts.getSelectedRow() >= 0) {
+            if (evt.getClickCount() == 1) {
+                dispose();
+                new editProduct(IdProduct).setVisible(true);
 
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new listProducts().setVisible(true);
             }
-        });
+
+        } else {
+            JOptionPane.showMessageDialog(null,"no ah seleccionado ningun producto!!", "ERROR!", JOptionPane.ERROR_MESSAGE, null);
+        }
+
+    }
+
+    private void btnEliminarClicked(MouseEvent evt) {
+        if (evt.getClickCount() == 1) {
+            if (CRUDFireStore.deleteProduct(IdProduct)) {
+                System.out.println("fila seleccionada antes de eliminar: " + selectedRow);
+                model.removeRow(selectedRow);
+                System.out.println(tblProducts.getRowCount());
+            }
+        }
+    }
+
+    private void btnNuevoClicked(MouseEvent evt) {
+        if (evt.getClickCount() == 1) {
+            dispose();
+            new newProduct().setVisible(true);
+        }
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnEditar;
+    private javax.swing.JButton btnEliminar;
+    private javax.swing.JButton btnNuevo;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JLabel lblImagen;
+    private javax.swing.JTextField lblNombreProduct;
     private javax.swing.JTable tblProducts;
     // End of variables declaration//GEN-END:variables
+
+    public void CambiosIniciales() {
+        
+        firestoreClass = new CRUDFireStore();
+        // agregando a la tabla la funcion para mostrar la img cada que cambio de celda
+        // con el teclado
+        tblProducts.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent evt) {
+                tblProductsValueChanged(evt);
+            }
+        });
+        btnEditar.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent evt) {
+                btnEditarClicked(evt);
+            }
+        });
+        btnEliminar.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent evt) {
+                btnEliminarClicked(evt);
+            }
+        });
+
+        btnNuevo.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent evt) {
+                btnNuevoClicked(evt);
+            }
+        });
+        PlaceHolder("nombre del producto ejemplo: Mentitas", lblNombreProduct);// agregando un placeHolder de ejemplo a
+                                                                               // la barra de busqueda
+        lblImagen.setIcon(CrearImg(new ImageIcon("imgs/images.png"), lblImagen));// mostrando la img por defecto al
+                                                                                 // iniciar la app
+        Font font = new Font(lblNombreProduct.getFont().getName(), Font.PLAIN, tamaño);
+        lblNombreProduct.setFont(font);// cambiando el tamaño de las letras de la barra de busqueda del producto
+        tblProducts.getTableHeader().setReorderingAllowed(false);
+        tblProducts.getTableHeader().setResizingAllowed(false);
+
+    }
+
+    // metodo para agregar un placeholder a un jtextField
+    private void PlaceHolder(String texto, JTextField txt) {
+        TextPrompt placeHolder = new TextPrompt(texto, txt);
+        placeHolder.setFont(new Font("", Font.PLAIN, tamaño));
+        placeHolder.changeAlpha(0.35f);
+    }
 
     /**
      * 
@@ -221,15 +316,16 @@ public class listProducts extends javax.swing.JFrame {
             } else {
                 System.out.println("el documento no existe");
             }
-
-            String cb = data.get("cb").toString();
+            String idProduct = document.getId();
+            String nombre = data.get("nombre").toString();
             String img = data.get("img").toString();
             double precio = Double.parseDouble(data.get("precio").toString());
             String stock = data.get("stock").toString();
-            listaTemp.add(document.getId());
+            listaTemp.add(nombre);
             listaTemp.add(precio);
             listaTemp.add(stock);
             listaTemp.add(img);
+            listaTemp.add(idProduct);
             llenarMapImgs(img);
             System.out.println("Datos descargados exitosamente");
         } catch (Exception e) {
@@ -241,37 +337,42 @@ public class listProducts extends javax.swing.JFrame {
     }
 
     private void llenarTabla(String NameCollection) {
-        DefaultTableModel model = new DefaultTableModel();
-        model.addColumn("Nombre");
-        model.addColumn("precio");
-        model.addColumn("stock");
-        model.addColumn("imagen");
+        model = new DefaultTableModel() {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        String[] titulos = new String[5];
+        titulos[0] = "nombre";
+        titulos[1] = "precio";
+        titulos[2] = "stock";
+        titulos[3] = "imagen";
+        titulos[4] = "";
+        model.setColumnIdentifiers(titulos);
         for (String documento : getAllDocuments(NameCollection)) {
             Object[] arrayObjeto = DownloadDataByCollection(NameCollection, documento).toArray();
             model.addRow(arrayObjeto);
-
         }
-
         tblProducts.setModel(model);
-        // Modificar el ancho de la primera columna después de haber sido agregada al
-        // contenedor
-        TableColumn column = tblProducts.getColumnModel().getColumn(3);
-        column.setMinWidth(0);
-        column.setMaxWidth(0);
-        column.setResizable(false);
-        column.setPreferredWidth(0);
-
+        // modificar el tamaño de la columna del nombre de la imagen
+        TableColumn columnImg = tblProducts.getColumnModel().getColumn(3);
+        columnImg.setMinWidth(0);
+        columnImg.setMaxWidth(0);
+        columnImg.setResizable(false);
+        columnImg.setPreferredWidth(0);
+        // modificar el tamaño de la columna del IdProducto
+        TableColumn columnId = tblProducts.getColumnModel().getColumn(4);
+        columnId.setMinWidth(0);
+        columnId.setMaxWidth(0);
+        columnId.setResizable(false);
+        columnId.setPreferredWidth(0);
     }
 
     private void mostrarImgInLabel(int fila, JLabel label) {
-        String nameImg=tblProducts.getValueAt(fila, 3).toString();
+        String nameImg = tblProducts.getValueAt(fila, 3).toString();
         byte[] imgBytes = imagenes.get(nameImg);
-        /*try {
-            imgBytes = downloaderImg.downloadImageBytes(bucketName, tblProducts.getValueAt(fila, 3).toString());
-        } catch (Exception e) {
-            System.out.println("ERROR: en listProducts.mostrarImgInLabel");
-        }*/
-
+        nameImgSelect = nameImg;
         lblImagen.setIcon(CrearImg(new ImageIcon(imgBytes), lblImagen));
     }
 
@@ -289,12 +390,12 @@ public class listProducts extends javax.swing.JFrame {
 
     }
 
-    private void llenarMapImgs(String nombreImg){
+    private void llenarMapImgs(String nombreImg) {
         try {
-            imagenes.put(nombreImg, CRUDStorage.downloadImageBytes(bucketName, nombreImg));
+            imagenes.put(nombreImg, CRUDStorage.downloadImageBytes(nombreImg));
         } catch (Exception e) {
-            System.out.println("ERROR en llenarMapImgs: "+e.getMessage());
+            System.out.println("ERROR en llenarMapImgs: " + e.getMessage());
         }
-            
+
     }
 }
