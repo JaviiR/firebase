@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -18,6 +19,7 @@ import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Bucket;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
+import com.google.firebase.cloud.StorageClient;
 import com.mycompany.firebase.utilidades.idGenerator;
 
 public class CRUDStorage {
@@ -223,6 +225,30 @@ public class CRUDStorage {
             return name;
         }
 
+    }
+
+    /**
+     * 
+     * @param nameImg nombre del imagen
+     * @param newtimeRefresh  DateTime de la ultima ves que fue modificado
+     * @return retorna true si no hubo cambios en la hora que fue modificada
+     */
+    public static boolean validarCambioimg(String nameImg,String oldTimeRefresh){
+        try {
+        String timeRefresh=StorageClient.getInstance().bucket(bucketName).get(nameImg).getUpdateTimeOffsetDateTime().toString();    
+        if(timeRefresh.equals(oldTimeRefresh)){
+            return true;
+        }else{
+            return false;
+        }
+        } catch (Exception e) {
+            System.out.println("ERROR(validarCambioImg): "+e.getMessage());
+            return false;
+        }
+        
+
+        
+        
     }
 
 }
