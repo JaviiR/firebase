@@ -11,22 +11,26 @@ import com.google.firebase.FirebaseOptions;
 
 
 public class conexion {
+    private static conexion cone;
 
-    public static void Conectar() {
-        try {
+    private conexion(){
+try {
             FileInputStream serviceAccount = new FileInputStream("tutorial.json");
-
-            FirebaseOptions options = FirebaseOptions.builder()
+                FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                     .build();
-            
-           
-            FirebaseApp.initializeApp(options);
-            System.out.println("Conexion exitosa");
+                FirebaseApp.initializeApp(options);
+                System.out.println("Conexion exitosa"); 
         } catch (Exception e) {
             System.out.println("Conexion fallida por: "+e.getMessage());
         }
-
+    }
+    
+    public static conexion getConexion() {
+        if(cone==null){
+            cone=new conexion();
+        }
+        return cone;
     }
 
 }
