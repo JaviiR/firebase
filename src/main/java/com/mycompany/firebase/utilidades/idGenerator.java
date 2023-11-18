@@ -29,16 +29,19 @@ public class idGenerator {
             }
             // ordena la lista
             Arrays.sort(listaSinCeros);
-            // crea lista con numeros faltantes
-            for (int i = 1; i <= listaSinCeros.length - 1; i++) {
-                int actual = listaSinCeros[i];
-                int anterior = listaSinCeros[i - 1];
-                if (actual - 1 != anterior) {
-                    int dif = actual - anterior;
-                    for (int y = 1; y <= dif - 1; y++) {
-                        listVacios.add(String.valueOf(anterior + y));
+            // creaando lista con numeros faltantes
+            for(int i=1;i<=listaSinCeros[listaSinCeros.length-1];i++){
+                boolean validar=true;
+                for(int y=0;y<listaSinCeros.length;y++){
+                    if(i==listaSinCeros[y]){
+                        validar=false;
+                        break;
                     }
+                    
                 }
+                if(validar){
+                        listVacios.add(""+i);
+                    }
             }
             if (listVacios.size() != 0) {
                 // valido que el id se complete con ceros hasta llegar a 6 digitos
@@ -90,16 +93,19 @@ public class idGenerator {
             }
             // ordena la lista
             Arrays.sort(listaSinCeros);
-            // crea lista con numeros faltantes
-            for (int i = 1; i <= listaSinCeros.length - 1; i++) {
-                int actual = listaSinCeros[i];
-                int anterior = listaSinCeros[i - 1];
-                if (actual - 1 != anterior) {
-                    int dif = actual - anterior;
-                    for (int y = 1; y <= dif - 1; y++) {
-                        listVacios.add(String.valueOf(anterior + y));
+            // creando lista con numeros faltantes
+            for(int i=1;i<=listaSinCeros[listaSinCeros.length-1];i++){
+                boolean validar=true;
+                for(int y=0;y<listaSinCeros.length;y++){
+                    if(i==listaSinCeros[y]){
+                        validar=false;
+                        break;
                     }
+                    
                 }
+                if(validar){
+                        listVacios.add(""+i);
+                    }
             }
             if (listVacios.size() != 0) {
                 // valido que el id se complete con ceros hasta llegar a 6 digitos
