@@ -12,8 +12,11 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
+import com.google.cloud.firestore.Firestore;
 import com.mycompany.firebase.CRUD.CRUDFireStore;
 import com.mycompany.firebase.CRUD.CRUDStorage;
+import com.mycompany.firebase.conection.ConexionFactory;
+
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.event.MouseAdapter;
@@ -23,6 +26,7 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,19 +37,23 @@ import java.util.List;
 public class editProduct extends javax.swing.JFrame {
         byte[] bytesImg = null;
         private String idProduct = null;
-        private final String CollectionName = "products";
         private List<String> Datos = null;
         private List<String> CodesBar = null;
         private String oldTimeRefreshFStore;
         private String oldTimeRefreshStorage;
+        private CRUDFireStore firebaseCRUD=null;
+        private CRUDStorage storageCRUD=null;
+        private Connection conexionSql=null;
 
         /**
          * Creates new form editProduct
          */
         public editProduct(String idProduct) {
-
+                conexionSql=ConexionFactory.getConexionSqlServer();//iniciando una conexion a SQlServer
+                firebaseCRUD=CRUDFireStore.getCRUDFireStore();//creando una instancia del CRUDFirestore para usar sus metodos
+                storageCRUD=CRUDStorage.getCRUDStorage();//creando una instancia de CRUDStorage para usar sus metodos
                 this.idProduct = idProduct;
-                Datos = CRUDFireStore.DatosProducto(idProduct);
+                Datos = firebaseCRUD.DatosProducto(idProduct);
                 CodesBar = listaBarCodes();
                 initComponents();
                 CambiosIniciales();
@@ -474,9 +482,8 @@ public class editProduct extends javax.swing.JFrame {
 
                 txtNombre.setText(Datos.get(0));
                 txtPrecio.setText(Datos.get(1));
-                lblImagen.setIcon(
-                                CrearImgJlabel(new ImageIcon(CRUDStorage.downloadImageBytes(Datos.get(2))), lblImagen));
-                bytesImg = CRUDStorage.downloadImageBytes(Datos.get(2));
+                lblImagen.setIcon(CrearImgJlabel(new ImageIcon(storageCRUD.downloadImageBytes(Datos.get(2))), lblImagen));
+                bytesImg = storageCRUD.downloadImageBytes(Datos.get(2));
                 spnStock.setValue(Integer.parseInt(Datos.get(3)));
                 oldTimeRefreshFStore = Datos.get(4);
                 oldTimeRefreshStorage = Datos.get(5);
@@ -516,7 +523,7 @@ public class editProduct extends javax.swing.JFrame {
 
         private boolean validarBarCodes() {
                 if(IdModificado()){
-                List<String> listaDocuments = CRUDFireStore.getAllDocuments(CollectionName);// lista que tiene todos los
+                List<String> listaDocuments = firebaseCRUD.getAllDocuments();// lista que tiene todos los
                                                                                             // nombres de los documentos
                 List<String> listaIdsBarCodes = new ArrayList<>();// lista que va a tener los nombres de los documentos
                                                                   // con cb: al principio
@@ -573,7 +580,7 @@ public class editProduct extends javax.swing.JFrame {
         }
 
         private boolean validarCodeBar(String CodeBar) {
-                List<String> listaDocuments = CRUDFireStore.getAllDocuments(CollectionName);// lista que tiene todos los
+                List<String> listaDocuments = firebaseCRUD.getAllDocuments();// lista que tiene todos los
                                                                                             // nombres de los documentos
                 List<String> listaIdsBarCodes = new ArrayList<>();// lista que va a tener los nombres de los documentos
                                                                   // con cb: al principio
@@ -662,16 +669,16 @@ public class editProduct extends javax.swing.JFrame {
                                 NewlistBarCode.add(cmboBarCode.getItemAt(i));
                         }
                 }
-                boolean cambiosId = CRUDFireStore.validarCambiosId(idProduct);
-                boolean cambiosDatos = CRUDFireStore.validarCambiosDatos(idProduct, oldTimeRefreshFStore);
-                boolean cambiosImg = CRUDStorage.validarCambioimg(Datos.get(2), oldTimeRefreshStorage);
+                boolean cambiosId = firebaseCRUD.validarCambiosId(idProduct);
+                boolean cambiosDatos = firebaseCRUD.validarCambiosDatos(idProduct, oldTimeRefreshFStore);
+                boolean cambiosImg = storageCRUD.validarCambioimg(Datos.get(2), oldTimeRefreshStorage);
                 boolean validarBarCode = validarBarCodes();
                 System.out.println("id: " + cambiosId);
                 System.out.println("datos: " + cambiosDatos);
                 System.out.println("Img: " + cambiosImg);
                 System.out.println("BarCode: " + validarBarCode);
                 if (cambiosId && cambiosDatos && cambiosImg && validarBarCode) {
-                        CRUDFireStore.editarProduct(Double.parseDouble(txtPrecio.getText()), bytesImg,
+                        firebaseCRUD.editarProduct(Double.parseDouble(txtPrecio.getText()), bytesImg,
                                         Integer.parseInt(spnStock.getValue().toString()), CodesBar, NewlistBarCode,
                                         Datos.get(2), txtNombre.getText());
                 } else {
@@ -715,7 +722,7 @@ public class editProduct extends javax.swing.JFrame {
          */
         private boolean IdModificado() {
                 int CodigoEncontrado = 0;
-                for (String s : CRUDFireStore.getAllDocuments(CollectionName)) {// valido si el id aun existe en la base
+                for (String s : firebaseCRUD.getAllDocuments()) {// valido si el id aun existe en la base
                                                                                 // de datos
                         if (s.equals(idProduct)) {
                                 CodigoEncontrado = 1;

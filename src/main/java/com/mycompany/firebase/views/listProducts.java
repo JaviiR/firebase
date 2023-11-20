@@ -5,11 +5,9 @@
  */
 package com.mycompany.firebase.views;
 
-import java.util.ArrayList;
-import java.util.List;
+
 import java.util.Map;
 import java.util.HashMap;
-
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -19,7 +17,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
-
+import com.mycompany.firebase.conection.ConexionFactory;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentChange;
@@ -36,34 +34,41 @@ import com.mycompany.firebase.utilidades.TextPrompt;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.Connection;
 
 /**
  *
  * @author ALEX
  */
 public class listProducts extends javax.swing.JFrame {
-    private CRUDFireStore firestoreClass;
+    
     private Map<String, byte[]> imagenes = new HashMap<>();
     private final int tamaño = 20;
     private String nameImgSelect = null;
     private String IdProduct = null;
     DefaultTableModel model = null;
     private int selectedRow = 0;
+    private CRUDFireStore firebaseCRUD=null;
+    private CRUDStorage storageCRUD=null;
+    private Connection conexionSql=null;
     private String IdUltimoEliminado;
     private ListenerRegistration listener = null;
     // DataUpdaterListProducts updater=new DataUpdaterListProducts();;
+
 
     /**
      * Creates new form listProducts
      */
     public listProducts() {
-        // **********************************************************************************************
-        // esto solo es para que no me aparesca como que no uso la variable no tiene
-        // efecto en la logica
-        System.out.println(firestoreClass);
+
+        //**********************************************************************************************
+        //esto solo es para que no me aparesca como que no uso la variable no tiene efecto en la logica
         System.out.println(nameImgSelect);
-        // **********************************************************************************************
-        conexion.getConexion();
+        System.out.println(conexionSql);
+        System.out.println(firebaseCRUD);
+        System.out.println(storageCRUD);
+        //**********************************************************************************************
+        //conexion.getConexion();
         initComponents();
         CambiosIniciales();
         llenarTabla("products");
@@ -217,9 +222,7 @@ public class listProducts extends javax.swing.JFrame {
             if (evt.getClickCount() == 1) {
                 cerrarVentana();
                 new editProduct(IdProduct).setVisible(true);
-
             }
-
         } else {
             JOptionPane.showMessageDialog(null, "no ah seleccionado ningun producto!!", "ERROR!",
                     JOptionPane.ERROR_MESSAGE, null);
@@ -229,7 +232,7 @@ public class listProducts extends javax.swing.JFrame {
 
     private void btnEliminarClicked(MouseEvent evt) {
         if (evt.getClickCount() == 1) {
-            if (CRUDFireStore.deleteProduct(IdProduct)) {
+            if (firebaseCRUD.deleteProduct(IdProduct)) {
                 System.out.println("fila seleccionada antes de eliminar: " + selectedRow);
                 model.removeRow(selectedRow);
                 System.out.println(tblProducts.getRowCount());
@@ -256,8 +259,10 @@ public class listProducts extends javax.swing.JFrame {
     // End of variables declaration//GEN-END:variables
 
     public void CambiosIniciales() {
+        conexionSql=ConexionFactory.getConexionSqlServer();//iniciando una conexion a SQlServer
+        firebaseCRUD=CRUDFireStore.getCRUDFireStore();//creando una instancia del CRUDStorage para usar sus metodos
+        storageCRUD=CRUDStorage.getCRUDStorage();//creando una instancia del CRUDStorage para usar sus metodos
 
-        firestoreClass = new CRUDFireStore();
         // agregando a la tabla la funcion para mostrar la img cada que cambio de celda
         // con el teclado
         tblProducts.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
@@ -304,55 +309,6 @@ public class listProducts extends javax.swing.JFrame {
         placeHolder.changeAlpha(0.35f);
     }
 
-    /**
-     * 
-     * @param NameCollection nombre de la coleccion
-     * @return trae una lista con los nombres de los documentos que contiene
-     *         <a >{@code NameCollection}</a>
-     */
-    private List<String> getAllDocuments(String NameCollection) {
-        List<String> listaDocumentos = new ArrayList<>();
-        Iterable<DocumentReference> documentos = FirestoreClient.getFirestore().collection(NameCollection)
-                .listDocuments();
-        for (DocumentReference reference : documentos) {
-            listaDocumentos.add(reference.getId());
-        }
-        return listaDocumentos;
-    }
-
-    private List<Object> DownloadDataByCollection(String Collection, String Document) {
-        List<Object> listaTemp = new ArrayList<>();
-        Map<String, Object> data = null;
-        try {
-
-            DocumentReference reference = FirestoreClient.getFirestore().collection(Collection).document(Document);
-            ApiFuture<DocumentSnapshot> future = reference.get();
-            DocumentSnapshot document = future.get();
-            if (document.exists()) {
-                data = document.getData();
-
-            } else {
-                System.out.println("el documento no existe");
-            }
-            String idProduct = document.getId();
-            String nombre = data.get("nombre").toString();
-            String img = data.get("img").toString();
-            double precio = Double.parseDouble(data.get("precio").toString());
-            String stock = data.get("stock").toString();
-            listaTemp.add(nombre);
-            listaTemp.add(precio);
-            listaTemp.add(stock);
-            listaTemp.add(img);
-            listaTemp.add(idProduct);
-            llenarMapImgs(img);
-            System.out.println("Datos descargados exitosamente");
-        } catch (Exception e) {
-            System.out.println("ERROR: " + e.getMessage());
-        }
-
-        return listaTemp;
-
-    }
 
     private void llenarTabla(String NameCollection) {
         model = new DefaultTableModel() {
@@ -368,9 +324,10 @@ public class listProducts extends javax.swing.JFrame {
         titulos[3] = "imagen";
         titulos[4] = "";
         model.setColumnIdentifiers(titulos);
-        for (String documento : getAllDocuments(NameCollection)) {
-            Object[] arrayObjeto = DownloadDataByCollection(NameCollection, documento).toArray();
+        for (String documento : firebaseCRUD.getAllDocuments()) {
+            Object[] arrayObjeto = firebaseCRUD.DownloadDataByCollection(documento).toArray();
             model.addRow(arrayObjeto);
+            llenarMapImgs(arrayObjeto[3].toString());
         }
         tblProducts.setModel(model);
         // modificar el tamaño de la columna del nombre de la imagen
@@ -410,13 +367,12 @@ public class listProducts extends javax.swing.JFrame {
 
     private void llenarMapImgs(String nombreImg) {
         try {
-            imagenes.put(nombreImg, CRUDStorage.downloadImageBytes(nombreImg));
+            imagenes.put(nombreImg, storageCRUD.downloadImageBytes(nombreImg));
         } catch (Exception e) {
             System.out.println("ERROR en llenarMapImgs: " + e.getMessage());
         }
-
     }
-
+  
     private void cerrarVentana() {
         listener.remove();
         dispose();
@@ -489,4 +445,59 @@ public class listProducts extends javax.swing.JFrame {
         }
 
     }
+  
+  
+  /*---------------------------------------------metodos en desUso------------------------------------------*/
+    /**
+     * 
+     * @param NameCollection nombre de la coleccion
+     * @return trae una lista con los nombres de los documentos que contiene
+     *         <a >{@code NameCollection}</a>
+     */
+    /*private List<String> getAllDocuments(String NameCollection) {
+        List<String> listaDocumentos = new ArrayList<>();
+        Iterable<DocumentReference> documentos = conexionFirebase.collection(NameCollection)
+                .listDocuments();
+        for (DocumentReference reference : documentos) {
+            listaDocumentos.add(reference.getId());
+        }
+        return listaDocumentos;
+    }*/
+
+
+    /*
+     * private List<Object> DownloadDataByCollection(String Collection, String Document) {
+        List<Object> listaTemp = new ArrayList<>();
+        Map<String, Object> data = null;
+
+        try {
+            DocumentReference reference = conexionFirebase.collection(Collection).document(Document);
+            ApiFuture<DocumentSnapshot> future = reference.get();
+            DocumentSnapshot document = future.get();
+            if (document.exists()) {
+                data = document.getData();
+            } else {
+                System.out.println("el documento no existe");
+            }
+            String idProduct = document.getId();
+            String nombre = data.get("nombre").toString();
+            String img = data.get("img").toString();
+            double precio = Double.parseDouble(data.get("precio").toString());
+            String stock = data.get("stock").toString();
+            listaTemp.add(nombre);
+            listaTemp.add(precio);
+            listaTemp.add(stock);
+            listaTemp.add(img);
+            listaTemp.add(idProduct);
+            llenarMapImgs(img);
+            System.out.println("Datos descargados exitosamente");
+        } catch (Exception e) {
+            System.out.println("ERROR: " + e.getMessage());
+        }
+
+        return listaTemp;
+
+    }
+     */
+
 }

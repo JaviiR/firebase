@@ -22,15 +22,15 @@ public class Principal {
 
     public static void main(String[] args) {
         
-        
-         try {
-         // Establecer el Look and Feel que prefieras (por ejemplo, Nimbus)
-         UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
-         } catch (Exception e) {
-         e.printStackTrace();
-         }
-         new listProducts().setVisible(true);
-        
+
+          try {
+          // Establecer el Look and Feel que prefieras (por ejemplo, Nimbus)
+          UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
+          } catch (Exception e) {
+          e.printStackTrace();
+          }
+          new listProducts().setVisible(true);
+
 
         /*
          * conexion.Conectar();

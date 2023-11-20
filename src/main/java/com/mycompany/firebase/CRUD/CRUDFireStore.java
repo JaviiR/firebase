@@ -11,16 +11,36 @@ import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.WriteResult;
 import com.google.cloud.storage.Blob;
-import com.google.firebase.cloud.FirestoreClient;
 import com.google.firebase.cloud.StorageClient;
 import com.mycompany.firebase.utilidades.CodEliminacion;
 import com.mycompany.firebase.utilidades.idGenerator;
+import com.mycompany.firebase.conection.ConexionFactory;
+import com.mycompany.firebase.utilidades.idGenerator;
 
 public class CRUDFireStore {
-    private Map<String, byte[]> imagenes;
     private static final String CollectionName = "products";
     private static final String bucketName = "fir-java-dbb1c.appspot.com";// nombre del bucket del Firebase Storage
-                                                                          // ejemplo: 'NOMBRE_DEL_PROYECTO.appspot.com'
+                                                                         // ejemplo: 'NOMBRE_DEL_PROYECTO.appspot.com'
+    private static Firestore firestore = null;
+    private static CRUDFireStore firestoreCrud=null;
+    private static CRUDStorage storageCRUD=null;
+
+    private CRUDFireStore() {
+        firestore=ConexionFactory.getConexionFirebase();
+        storageCRUD=CRUDStorage.getCRUDStorage();
+    }
+
+    public static CRUDFireStore getCRUDFireStore() {
+        if(firestoreCrud==null){
+            firestoreCrud=new CRUDFireStore();
+        }
+        return firestoreCrud;
+    }
+    
+
+
+
+
 
     /**
      * 
@@ -32,13 +52,13 @@ public class CRUDFireStore {
      * @param ListBarCodes     lista con los codigo de barras del producto
      * @throws Exception
      */
-    public static void uploaderOnFireStore(String NameProduct, double Price, String rutaArchivoLocal, int Stock,
+    public void uploaderOnFireStore(String NameProduct, double Price, String rutaArchivoLocal, int Stock,
             List<String> ListBarCodes) {
         DocumentReference docRef = null;
         String nameDocument = null;
         if (ListBarCodes == null || ListBarCodes.size() == 0) {
             List<String> listaIdGenerados = null;
-            List<String> listaDocuments = getAllDocuments(CollectionName);// lista que tiene todos los nombres de los
+            List<String> listaDocuments = getAllDocuments();// lista que tiene todos los nombres de los
                                                                           // documentos
             if (listaDocuments != null) {
                 listaIdGenerados = new ArrayList<>();// lista que va a tener los nombres de los documentos que no tengan
@@ -63,8 +83,7 @@ public class CRUDFireStore {
         }
 
         try {
-            Firestore db = FirestoreClient.getFirestore();
-            docRef = db.collection(CollectionName).document(nameDocument);
+            docRef = firestore.collection(CollectionName).document(nameDocument);
         } catch (Exception e) {
             System.out.println("ERROR al obtener la coleccion: " + e.getMessage());
         }
@@ -74,7 +93,7 @@ public class CRUDFireStore {
         data.put("nombre", NameProduct);
         data.put("precio", Price);
         try {
-            data.put("img", CRUDStorage.uploader(rutaArchivoLocal));
+            data.put("img", storageCRUD.uploader(rutaArchivoLocal));
         } catch (Exception e) {
             System.out.println("img no se pudo cargar");
         }
@@ -91,14 +110,14 @@ public class CRUDFireStore {
 
     }
 
-    public static void editarProduct(double precio, byte[] bytesImg, int stock, List<String> OldlistBarCodes,
+
+    public void editarProduct(double precio, byte[] bytesImg, int stock, List<String> OldlistBarCodes,
         List<String> NewlistBarCodes,
         String nameImg, String nameProduct) {
-        
-            String OldIdProduct = "";
-            String NewIdProduct = "";
-            int contadorOld = 0;// contador del id antiguo
-            int contadorNew = 0;// contador del id nuevo
+        String OldIdProduct = "";
+        String NewIdProduct = "";
+        int contadorOld = 0;// contador del id antiguo
+        int contadorNew = 0;// contador del id nuevo
 
         // paso el id antiguo a un string para comparación
         for (String s : OldlistBarCodes) {
@@ -128,14 +147,13 @@ public class CRUDFireStore {
             }
         }
 
-        Firestore db = FirestoreClient.getFirestore();
-        DocumentReference oldDocRef = db.collection(CollectionName).document(OldIdProduct);
-        
+        DocumentReference oldDocRef = firestore.collection(CollectionName).document(OldIdProduct);
+
         if (NewIdProduct.equals(OldIdProduct)) {
             Map<String, Object> datos = new HashMap<>();
             datos.put("nombre", nameProduct);
             datos.put("precio", precio);
-            datos.put("img", CRUDStorage.actualizarImg(nameImg, bytesImg));
+            datos.put("img", storageCRUD.actualizarImg(nameImg, bytesImg));
             datos.put("stock", stock);
             ApiFuture<WriteResult> oldResult = oldDocRef.update(datos);
             try {
@@ -159,11 +177,11 @@ public class CRUDFireStore {
             } catch (Exception e) {
                 System.out.println("ERROR(editarProduct): " + e.getMessage());
             }
-            DocumentReference newDocRef = db.collection(CollectionName).document(NewIdProduct);
+            DocumentReference newDocRef = firestore.collection(CollectionName).document(NewIdProduct);
             Map<String, Object> datos = new HashMap<>();
             datos.put("nombre", nameProduct);
             datos.put("precio", precio);
-            datos.put("img", CRUDStorage.actualizarImg(nameImg, bytesImg));
+            datos.put("img", storageCRUD.actualizarImg(nameImg, bytesImg));
             datos.put("stock", stock);
             Result = newDocRef.create(datos);
             try {
@@ -174,19 +192,23 @@ public class CRUDFireStore {
         }
     }
 
-    public static boolean deleteProduct(String nameProduct) {// en un futuro cambiar el nombre del producto por el
+
+    public boolean deleteProduct(String nameProduct) {// en un futuro cambiar el nombre del producto por el
+
                                                              // barcode
                                                              // o nombre de la img
 
         try {
-            Firestore cliente = FirestoreClient.getFirestore();// traigo un cliente de mi firestore
-            DocumentReference referencia = cliente.collection(CollectionName).document(nameProduct);// creo una
+
+            
+            DocumentReference referencia = firestore.collection(CollectionName).document(nameProduct);// creo una
+
                                                                                                     // referencia al
                                                                                                     // producto
             String nameImg = referencia.get().get().getData().get("img").toString();// obtengo el nombre de la img
                                                                                     // asociada al producto
             ApiFuture<WriteResult> resultado = referencia.delete();// elimino el producto en el firestore
-            CRUDStorage.deleteImg(nameImg);// elimino la imagen en el storage
+            storageCRUD.deleteImg(nameImg);// elimino la imagen en el storage
             System.out.println("Producto eliminado: " + resultado.get().getUpdateTime());
             return true;
         } catch (Exception e) {
@@ -205,10 +227,10 @@ public class CRUDFireStore {
      *         * devuelve una lista con 0 datos
      *         * devuelve una lista null
      */
-    public static List<String> getAllDocuments(String NameCollection) {
+    public List<String> getAllDocuments() {
         List<String> listaDocumentos = null;
         try {
-            Iterable<DocumentReference> documentos = FirestoreClient.getFirestore().collection(NameCollection)
+            Iterable<DocumentReference> documentos = firestore.collection(CollectionName)
                     .listDocuments();
             if (documentos.iterator().hasNext()) {
                 listaDocumentos = new ArrayList<>();
@@ -230,13 +252,13 @@ public class CRUDFireStore {
      * @return retorna una lista con los datos del producto traido desde Firestore
      *         que tenga el Id <a>{@code idProduct}<a/>
      */
-    public static List<String> DatosProducto(String idProduct) {
+    public List<String> DatosProducto(String idProduct) {
 
         List<String> listaTemp = new ArrayList<>();
 
         Map<String, Object> data = null;
         try {
-            DocumentReference reference = FirestoreClient.getFirestore().collection(CollectionName).document(idProduct);
+            DocumentReference reference = firestore.collection(CollectionName).document(idProduct);
             ApiFuture<DocumentSnapshot> future = reference.get();
             DocumentSnapshot document = future.get();
             Blob Dataimg = StorageClient.getInstance().bucket(bucketName).get(document.get("img").toString());
@@ -273,8 +295,8 @@ public class CRUDFireStore {
      * @param IdProduct id del producto antes que sea modificado
      * @return retorna false si no encuentra un id igual en la firestore
      */
-    public static boolean validarCambiosId(String IdProduct) {
-        List<String> Documents = CRUDFireStore.getAllDocuments(CollectionName);
+    public boolean validarCambiosId(String IdProduct) {
+        List<String> Documents = getAllDocuments();
         if (Documents != null) {
             boolean validar = false;
             for (String s : Documents) {
@@ -288,10 +310,12 @@ public class CRUDFireStore {
         }
     }
 
-    public static boolean validarCambiosDatos(String IdProduct, String oldtimeRefreshFStore) {
+
+    public boolean validarCambiosDatos(String IdProduct, String oldtimeRefreshFStore) {
+
 
         try {
-            ApiFuture<DocumentSnapshot> future = FirestoreClient.getFirestore().collection(CollectionName)
+            ApiFuture<DocumentSnapshot> future = firestore.collection(CollectionName)
                     .document(IdProduct).get();
             try {
                 String timeRefreshFStore = future.get().getUpdateTime().toDate().toString();
@@ -322,7 +346,7 @@ public class CRUDFireStore {
         Map<String, Object> data = null;
         try {
 
-            DocumentReference reference = FirestoreClient.getFirestore().collection("products").document(Document);
+            DocumentReference reference = firestore.collection("products").document(Document);
             ApiFuture<DocumentSnapshot> future = reference.get();
             DocumentSnapshot document = future.get();
             if (document.exists()) {
@@ -341,7 +365,6 @@ public class CRUDFireStore {
             listaTemp.add(stock);
             listaTemp.add(img);
             listaTemp.add(idProduct);
-            llenarMapImgs(img);
             System.out.println("Datos descargados exitosamente");
         } catch (Exception e) {
             System.out.println("ERROR: " + e.getMessage());
@@ -350,17 +373,6 @@ public class CRUDFireStore {
         return listaTemp;
     }
 
-    private void llenarMapImgs(String nombreImg) {
-        try {
-            imagenes.put(nombreImg, CRUDStorage.downloadImageBytes(nombreImg));
-        } catch (Exception e) {
-            System.out.println("ERROR en llenarMapImgs: " + e.getMessage());
-        }
 
-    }
+    
 
-    public Map<String, byte[]> getImagenes() {
-        return imagenes;
-    }
-
-}
