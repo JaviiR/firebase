@@ -21,7 +21,7 @@ public class idGenerator {
                                                       // la firestore
         List<String> listVacios = new ArrayList<>();// lista de ids que no estan siendo usados
 
-        if (listaRemota.size() > 1) {
+        if (listaRemota.size() > 0) {
             Integer[] listaSinCeros = new Integer[listaRemota.size()];
 
             for (int i = 0; i <= listaRemota.size() - 1; i++) {
@@ -85,7 +85,7 @@ public class idGenerator {
     public static String generarIdProduct(List<String> lista){
         String idGenerado = "";
         List<String> listVacios = new ArrayList<>();// lista de ids que no estan siendo usados
-        if (lista.size() > 1) {
+        if (lista.size() > 0) {
             Integer[] listaSinCeros = new Integer[lista.size()];
 
             for (int i = 0; i <= lista.size() - 1; i++) {
