@@ -21,12 +21,17 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 
 import com.google.api.core.ApiFuture;
+import com.google.cloud.firestore.CollectionReference;
+import com.google.cloud.firestore.DocumentChange;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
+import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.ListenerRegistration;
 import com.google.firebase.cloud.FirestoreClient;
 import com.mycompany.firebase.CRUD.CRUDFireStore;
 import com.mycompany.firebase.CRUD.CRUDStorage;
 import com.mycompany.firebase.conection.conexion;
+import com.mycompany.firebase.utilidades.CodEliminacion;
 import com.mycompany.firebase.utilidades.TextPrompt;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
@@ -44,21 +49,27 @@ public class listProducts extends javax.swing.JFrame {
     private String IdProduct = null;
     DefaultTableModel model = null;
     private int selectedRow = 0;
+    private String IdUltimoEliminado;
+    private ListenerRegistration listener = null;
+    // DataUpdaterListProducts updater=new DataUpdaterListProducts();;
 
     /**
      * Creates new form listProducts
      */
     public listProducts() {
-        //**********************************************************************************************
-        //esto solo es para que no me aparesca como que no uso la variable no tiene efecto en la logica
+        // **********************************************************************************************
+        // esto solo es para que no me aparesca como que no uso la variable no tiene
+        // efecto en la logica
         System.out.println(firestoreClass);
         System.out.println(nameImgSelect);
-        //**********************************************************************************************
+        // **********************************************************************************************
         conexion.getConexion();
         initComponents();
         CambiosIniciales();
         llenarTabla("products");
         this.setLocationRelativeTo(null);
+        updateData();
+
     }
 
     /**
@@ -204,13 +215,14 @@ public class listProducts extends javax.swing.JFrame {
     private void btnEditarClicked(MouseEvent evt) {
         if (tblProducts.getSelectedRow() >= 0) {
             if (evt.getClickCount() == 1) {
-                dispose();
+                cerrarVentana();
                 new editProduct(IdProduct).setVisible(true);
 
             }
 
         } else {
-            JOptionPane.showMessageDialog(null,"no ah seleccionado ningun producto!!", "ERROR!", JOptionPane.ERROR_MESSAGE, null);
+            JOptionPane.showMessageDialog(null, "no ah seleccionado ningun producto!!", "ERROR!",
+                    JOptionPane.ERROR_MESSAGE, null);
         }
 
     }
@@ -227,7 +239,7 @@ public class listProducts extends javax.swing.JFrame {
 
     private void btnNuevoClicked(MouseEvent evt) {
         if (evt.getClickCount() == 1) {
-            dispose();
+            cerrarVentana();
             new newProduct().setVisible(true);
         }
     }
@@ -244,7 +256,7 @@ public class listProducts extends javax.swing.JFrame {
     // End of variables declaration//GEN-END:variables
 
     public void CambiosIniciales() {
-        
+
         firestoreClass = new CRUDFireStore();
         // agregando a la tabla la funcion para mostrar la img cada que cambio de celda
         // con el teclado
@@ -273,6 +285,7 @@ public class listProducts extends javax.swing.JFrame {
                 btnNuevoClicked(evt);
             }
         });
+
         PlaceHolder("nombre del producto ejemplo: Mentitas", lblNombreProduct);// agregando un placeHolder de ejemplo a
                                                                                // la barra de busqueda
         lblImagen.setIcon(CrearImg(new ImageIcon("imgs/images.png"), lblImagen));// mostrando la img por defecto al
@@ -400,6 +413,79 @@ public class listProducts extends javax.swing.JFrame {
             imagenes.put(nombreImg, CRUDStorage.downloadImageBytes(nombreImg));
         } catch (Exception e) {
             System.out.println("ERROR en llenarMapImgs: " + e.getMessage());
+        }
+
+    }
+
+    private void cerrarVentana() {
+        listener.remove();
+        dispose();
+    }
+
+    private void updateData() {
+        final int COLUMN = 4;
+        Firestore db = FirestoreClient.getFirestore();
+        CollectionReference docRef = db.collection("products");// cambiar por una variable global para todas las
+                                                               // referencias al nombre de la colección
+        // registrar un listener para cambios en el documento
+        if (listener == null) {
+            listener=docRef.addSnapshotListener((snapshots, e) -> {
+                if (e != null) {
+                    System.err.println("Error al escuchar cambios: " + e);
+                    return;
+                }
+
+                if (snapshots != null) {
+                    for (DocumentChange change : snapshots.getDocumentChanges()) {
+                        switch (change.getType()) {
+                            case ADDED:
+                                System.out.println("-----------------Elemento agregado:" + change.getDocument().getId()
+                                        + "---------------");
+                                if (IdUltimoEliminado != null && !IdUltimoEliminado.equals("")) {
+                                    int Nrofilas = tblProducts.getRowCount();
+                                    for (int i = 0; i < Nrofilas; i++) {
+                                        if (IdUltimoEliminado.equals(tblProducts.getValueAt(i, 4).toString())) {
+                                            tblProducts.setValueAt(change.getDocument().getString("nombre"), i, 0);
+                                            tblProducts.setValueAt(change.getDocument().get("precio"), i, 1);
+                                            tblProducts.setValueAt(change.getDocument().get("stock"), i, 2);
+                                            tblProducts.setValueAt(change.getDocument().getString("img"), i, 3);
+                                            tblProducts.setValueAt(change.getDocument().getId(), i, 4);
+                                            System.out.println("-------------------------------------------------");
+                                            IdUltimoEliminado = null;
+                                            break;
+                                        }
+                                    }
+                                }
+                                break;
+                            case MODIFIED:
+                                System.out
+                                        .println("-----------------Elemento actualizado:" + change.getDocument().getId()
+                                                + "---------------");
+                                int Nrofilas = tblProducts.getRowCount();
+                                for (int i = 0; i < Nrofilas; i++) {
+                                    if (change.getDocument().getId().toString()
+                                            .equals(tblProducts.getValueAt(i, COLUMN).toString())) {
+                                        tblProducts.setValueAt(change.getDocument().getString("nombre"), i, 0);
+                                        tblProducts.setValueAt(change.getDocument().get("precio"), i, 1);
+                                        tblProducts.setValueAt(change.getDocument().get("stock"), i, 2);
+                                        tblProducts.setValueAt(change.getDocument().getString("img"), i, 3);
+                                        System.out.println("-------------------------------------------------");
+                                        break;
+                                    }
+                                }
+                                break;
+                            case REMOVED:
+                                System.out.println("-----------------Elemento eliminado:" + change.getDocument().getId()
+                                        + "---------------");
+                                if (change.getDocument().getString("nombre").equals(CodEliminacion.COD_ELIMINACION)) {
+                                    IdUltimoEliminado = change.getDocument().getId().toString();
+                                }
+                                System.out.println("-------------------------------------------------");
+                                break;
+                        }
+                    }
+                }
+            });
         }
 
     }
