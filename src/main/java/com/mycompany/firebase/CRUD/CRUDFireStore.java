@@ -12,6 +12,8 @@ import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.WriteResult;
 import com.google.cloud.storage.Blob;
 import com.google.firebase.cloud.StorageClient;
+import com.mycompany.firebase.utilidades.CodEliminacion;
+import com.mycompany.firebase.utilidades.idGenerator;
 import com.mycompany.firebase.conection.ConexionFactory;
 import com.mycompany.firebase.utilidades.idGenerator;
 
@@ -35,6 +37,10 @@ public class CRUDFireStore {
         return firestoreCrud;
     }
     
+
+
+
+
 
     /**
      * 
@@ -104,13 +110,15 @@ public class CRUDFireStore {
 
     }
 
+
     public void editarProduct(double precio, byte[] bytesImg, int stock, List<String> OldlistBarCodes,
-            List<String> NewlistBarCodes,
-            String nameImg, String nameProduct) {
+        List<String> NewlistBarCodes,
+        String nameImg, String nameProduct) {
         String OldIdProduct = "";
         String NewIdProduct = "";
         int contadorOld = 0;// contador del id antiguo
         int contadorNew = 0;// contador del id nuevo
+
         // paso el id antiguo a un string para comparación
         for (String s : OldlistBarCodes) {
             if (!s.substring(0, 2).equals("IG")) {
@@ -124,6 +132,7 @@ public class CRUDFireStore {
                 OldIdProduct = s.substring(3, s.length());
             }
         }
+
         // paso el id nuevo a un string para comparación
         for (String s : NewlistBarCodes) {
             if (!s.substring(0, 2).equals("IG")) {
@@ -137,7 +146,9 @@ public class CRUDFireStore {
                 NewIdProduct = s.substring(3, s.length());
             }
         }
+
         DocumentReference oldDocRef = firestore.collection(CollectionName).document(OldIdProduct);
+
         if (NewIdProduct.equals(OldIdProduct)) {
             Map<String, Object> datos = new HashMap<>();
             datos.put("nombre", nameProduct);
@@ -151,9 +162,18 @@ public class CRUDFireStore {
                 System.out.println("ERROR(editarProduct): " + e.getMessage());
             }
         } else {
-            ApiFuture<WriteResult> oldResult = oldDocRef.delete();
+            ApiFuture<WriteResult> Result;
+            Map<String, Object>  beforeDelete= new HashMap<>();
+            beforeDelete.put("nombre", CodEliminacion.COD_ELIMINACION);
+            Result=oldDocRef.update(beforeDelete);
             try {
-                System.out.println("edit time: " + oldResult.get().getUpdateTime());
+                System.out.println("update before deleting time: " + Result.get().getUpdateTime());
+            } catch (Exception e) {
+                System.out.println("ERROR(editarProduct): " + e.getMessage());
+            }
+            Result =oldDocRef.delete();
+            try {
+                System.out.println("delete time: " + Result.get().getUpdateTime());
             } catch (Exception e) {
                 System.out.println("ERROR(editarProduct): " + e.getMessage());
             }
@@ -163,22 +183,26 @@ public class CRUDFireStore {
             datos.put("precio", precio);
             datos.put("img", storageCRUD.actualizarImg(nameImg, bytesImg));
             datos.put("stock", stock);
-            ApiFuture<WriteResult> newResult = newDocRef.create(datos);
+            Result = newDocRef.create(datos);
             try {
-                System.out.println("edit time: " + newResult.get().getUpdateTime());
+                System.out.println("edit time: " + Result.get().getUpdateTime());
             } catch (Exception e) {
                 System.out.println("ERROR(editarProduct): " + e.getMessage());
             }
         }
     }
 
+
     public boolean deleteProduct(String nameProduct) {// en un futuro cambiar el nombre del producto por el
+
                                                              // barcode
                                                              // o nombre de la img
 
         try {
+
             
             DocumentReference referencia = firestore.collection(CollectionName).document(nameProduct);// creo una
+
                                                                                                     // referencia al
                                                                                                     // producto
             String nameImg = referencia.get().get().getData().get("img").toString();// obtengo el nombre de la img
@@ -286,7 +310,9 @@ public class CRUDFireStore {
         }
     }
 
+
     public boolean validarCambiosDatos(String IdProduct, String oldtimeRefreshFStore) {
+
 
         try {
             ApiFuture<DocumentSnapshot> future = firestore.collection(CollectionName)
@@ -347,5 +373,6 @@ public class CRUDFireStore {
         return listaTemp;
     }
 
+
     
-}
+

@@ -4,17 +4,25 @@
  * and open the template in the editor.
  */
 package com.mycompany.firebase;
+
 import javax.swing.UIManager;
+
+
 import com.mycompany.firebase.views.listProducts;
+
 /**
- * @apiNote si la aplicacion no corre talvez se deba que falta la carpeta target o le falta algo a la carpeta target(creo que es donde estan las clases compiladas aun estoy investigando), en ese caso atravez de la consola/terminal de tu IDE escribir el comando "mvn clean install"(sin las comillas)(esto borra la carpeta target y la crea denuevo con los recursos necesarios)
+ * @apiNote si la aplicacion no corre talvez se deba que falta la carpeta target
+ *          o le falta algo a la carpeta target(creo que es donde estan las
+ *          clases compiladas aun estoy investigando), en ese caso atravez de la
+ *          consola/terminal de tu IDE escribir el comando "mvn clean
+ *          install"(sin las comillas)(esto borra la carpeta target y la crea
+ *          denuevo con los recursos necesarios)
  */
 public class Principal {
-    
 
     public static void main(String[] args) {
-
         
+
           try {
           // Establecer el Look and Feel que prefieras (por ejemplo, Nimbus)
           UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
@@ -22,6 +30,7 @@ public class Principal {
           e.printStackTrace();
           }
           new listProducts().setVisible(true);
+
 
         /*
          * conexion.Conectar();
@@ -38,15 +47,6 @@ public class Principal {
          * System.out.println("ERROR: "+e.getMessage());
          * }
          */
-
-        
-
-        
-        
-
-    
-
-    
 
     }
 
