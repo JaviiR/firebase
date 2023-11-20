@@ -8,6 +8,7 @@ import com.mycompany.firebase.CRUD.CRUDStorage;
 
 public class idGenerator {
     static final String bucketName = "fir-java-dbb1c.appspot.com";
+    private static CRUDStorage strageCRUD=CRUDStorage.getCRUDStorage();
 
     /**
      * 
@@ -17,7 +18,7 @@ public class idGenerator {
     public static String generar() {
         String idGenerado = "";
         List<String> listaRemota = null;
-        listaRemota = CRUDStorage.listNamesImgs();// lista de ids que estan en
+        listaRemota = strageCRUD.listNamesImgs();// lista de ids que estan en
                                                       // la firestore
         List<String> listVacios = new ArrayList<>();// lista de ids que no estan siendo usados
 
@@ -29,7 +30,7 @@ public class idGenerator {
             }
             // ordena la lista
             Arrays.sort(listaSinCeros);
-            // creaando lista con numeros faltantes
+            // creando lista con numeros faltantes
             for(int i=1;i<=listaSinCeros[listaSinCeros.length-1];i++){
                 boolean validar=true;
                 for(int y=0;y<listaSinCeros.length;y++){

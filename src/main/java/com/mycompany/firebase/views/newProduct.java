@@ -13,6 +13,7 @@ import java.awt.event.MouseMotionAdapter;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +23,10 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+
+import com.google.cloud.firestore.Firestore;
 import com.mycompany.firebase.CRUD.CRUDFireStore;
+import com.mycompany.firebase.conection.ConexionFactory;
 
 /**
  *
@@ -31,13 +35,18 @@ import com.mycompany.firebase.CRUD.CRUDFireStore;
 public class newProduct extends javax.swing.JFrame {
         String urlImgLocal = "imgs/images.png";
         List<String> BarCodes;
-        private final String CollectionName = "products";
+        private Connection conexionSql = null;
+        
+        private CRUDFireStore firebaseCRUD = null;
 
         /**
          * Creates new form newProduct
          */
         public newProduct() {
                 initComponents();
+                conexionSql = ConexionFactory.getConexionSqlServer();// iniciando una conexion a SQlServer
+                firebaseCRUD = CRUDFireStore.getCRUDFireStore();// creando una instancia del CURDFirestore para usar
+                                                                   // sus metodos
                 CambiosIniciales();
                 setLocationRelativeTo(null);
                 setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -317,6 +326,7 @@ public class newProduct extends javax.swing.JFrame {
                 }
 
         }
+
         private void btnEliminarBarCodeClick(MouseEvent evt) {
                 if (evt.getClickCount() == 1) {
                         EliminarCodeBar();
@@ -326,18 +336,17 @@ public class newProduct extends javax.swing.JFrame {
         private void btnAgregarAction(MouseEvent evt) {
                 if (evt.getClickCount() == 1) {
                         String codigoNuevo = JOptionPane.showInputDialog("ingresar codigo de barras");
-                        if(codigoNuevo!=null){
-                        if (validarCodeBar(codigoNuevo)) {
-                                cmboBarCode.addItem(codigoNuevo);
-                        } else {
-                                JOptionPane.showMessageDialog(this, "Codigo ya existe", "Advertencia!",
-                                                JOptionPane.ERROR_MESSAGE, null);
+                        if (codigoNuevo != null) {
+                                if (validarCodeBar(codigoNuevo)) {
+                                        cmboBarCode.addItem(codigoNuevo);
+                                } else {
+                                        JOptionPane.showMessageDialog(this, "Codigo ya existe", "Advertencia!",
+                                                        JOptionPane.ERROR_MESSAGE, null);
+                                }
                         }
-                }
                         ;
                 }
         }
-
 
         // Variables declaration - do not modify//GEN-BEGIN:variables
         private javax.swing.JButton btnAgregarBarCode;
@@ -357,9 +366,9 @@ public class newProduct extends javax.swing.JFrame {
 
         private void CambiosIniciales() {
                 Color color;
-                addWindowListener(new WindowAdapter(){
+                addWindowListener(new WindowAdapter() {
                         @Override
-                        public void windowClosing(WindowEvent evt){
+                        public void windowClosing(WindowEvent evt) {
                                 dispose();
                                 new listProducts().setVisible(true);
                         }
@@ -462,7 +471,7 @@ public class newProduct extends javax.swing.JFrame {
         }
 
         private boolean validarBarCodes() {// FALTA COMPLETAR LA LOGICA Y REVISAR TBM EN EL FORMULARIO DE EDITAR
-                List<String> listaDocuments = CRUDFireStore.getAllDocuments(CollectionName);// lista que tiene todos los
+                List<String> listaDocuments = firebaseCRUD.getAllDocuments();// lista que tiene todos los
                                                                                             // nombres de los documentos
                 List<String> listaIdsBarCodes = new ArrayList<>();// lista que va a tener los nombres de los documentos
                                                                   // con cb: al principio
@@ -492,10 +501,11 @@ public class newProduct extends javax.swing.JFrame {
                                                 }
                                                 i++;
                                         }
-                                        //esto solo es para que no me aparesca como que no uso la variable s no tiene efecto en la logica
-                                        if(i==0){
+                                        // esto solo es para que no me aparesca como que no uso la variable s no tiene
+                                        // efecto en la logica
+                                        if (i == 0) {
                                                 System.out.print(s);
-                                                }
+                                        }
                                 }
                         }
                         for (int i = 0; i < cmboBarCode.getItemCount(); i++) {// valido si el codigo de barra ya existe
@@ -522,7 +532,7 @@ public class newProduct extends javax.swing.JFrame {
                 }
                 if (validarBarCodes()) {
 
-                        CRUDFireStore.uploaderOnFireStore(txtNombre.getText(), Double.parseDouble(txtPrecio.getText()),
+                        firebaseCRUD.uploaderOnFireStore(txtNombre.getText(), Double.parseDouble(txtPrecio.getText()),
                                         urlImgLocal, Integer.parseInt(spnStock.getValue().toString()), listBarCodes);
                         return true;
                 } else {
@@ -532,6 +542,7 @@ public class newProduct extends javax.swing.JFrame {
                 }
 
         }
+
         private void EliminarCodeBar() {
 
                 try {
@@ -550,11 +561,9 @@ public class newProduct extends javax.swing.JFrame {
                 }
 
         }
-        
-
 
         private boolean validarCodeBar(String CodeBar) {
-                List<String> listaDocuments = CRUDFireStore.getAllDocuments(CollectionName);// lista que tiene todos los
+                List<String> listaDocuments = firebaseCRUD.getAllDocuments();// lista que tiene todos los
                                                                                             // nombres de los documentos
                 List<String> listaIdsBarCodes = new ArrayList<>();// lista que va a tener los nombres de los documentos
                                                                   // con cb: al principio
@@ -585,10 +594,11 @@ public class newProduct extends javax.swing.JFrame {
                                                 }
                                                 i++;
                                         }
-                                        //esto solo es para que no me aparesca como que no uso la variable s no tiene efecto en la logica
-                                        if(i==0){
+                                        // esto solo es para que no me aparesca como que no uso la variable s no tiene
+                                        // efecto en la logica
+                                        if (i == 0) {
                                                 System.out.print(s);
-                                                }
+                                        }
                                 }
                         }
                         for (String code : CodigosBarraFirestore) {// valido si el codigo de barra ya existe en la base

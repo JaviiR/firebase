@@ -21,16 +21,26 @@ import com.google.firebase.cloud.StorageClient;
 import com.mycompany.firebase.utilidades.idGenerator;
 
 public class CRUDStorage {
-
+    private static CRUDStorage storage=null;
     private static final String rutaCredenciales = "tutorial.json";//ruta en donde guardas las credenciales que te da firebase de tu proyect
     private static final String bucketName = "fir-java-dbb1c.appspot.com";//nombre del bucket del Firebase Storage ejemplo: 'NOMBRE_DEL_PROYECTO.appspot.com'
 
+    private CRUDStorage(){
+
+    }
+
+    public static CRUDStorage getCRUDStorage(){
+        if(storage==null){
+            storage=new CRUDStorage();
+        }
+        return storage;
+    }
     /**
      * 
      * @param rutaArchivoLocal Ruta y nombre del archivo (local)
      * @return devuelve el nombre de la img subida al storage
      */
-    public static String uploader(String rutaArchivoLocal) throws Exception {
+    public String uploader(String rutaArchivoLocal) throws Exception {
 
         try {
             FileInputStream servicioCuentas = new FileInputStream(rutaCredenciales);
@@ -66,7 +76,7 @@ public class CRUDStorage {
      * @param objectName nombre que va a tener el archivo en el storage en Firebase
      * @param filePath   Ruta y nombre del archivo (local)
      */
-    public static void otraFormaSubirImg(String projectId, String objectName, String filePath) {
+    private void otraFormaSubirImg(String projectId, String objectName, String filePath) {
         try {
             FileInputStream servicioCuentas = new FileInputStream(rutaCredenciales);
             Storage storage = StorageOptions.newBuilder().setCredentials(GoogleCredentials.fromStream(servicioCuentas))
@@ -90,7 +100,7 @@ public class CRUDStorage {
         System.out.println("File " + filePath + " uploaded to bucket " + bucketName + " as " + objectName);
     }
 
-    public static void listBuckets(String projectId) {
+    public void listBuckets(String projectId) {
         Storage storage = null;
         try {
             FileInputStream servicioCuentas = new FileInputStream(rutaCredenciales);
@@ -111,7 +121,7 @@ public class CRUDStorage {
      *
      * @return devuelve una lista con los nombres de las imagenes
      */
-    public static List<String> listNamesImgs() {
+    public List<String> listNamesImgs() {
         List<String> imgNames = null;
         Storage storage = null;
         try {
@@ -138,7 +148,7 @@ public class CRUDStorage {
      * @param imagePath ruta de la img en remoto o nombre de la img
      * @return retorna la imagen descargada del Firebase Storage convertida a un arreglo de bytes
      */
-    public static byte[] downloadImageBytes(String imagePath) {
+    public byte[] downloadImageBytes(String imagePath) {
 
         try {
             FileInputStream servicioCuentas = new FileInputStream(rutaCredenciales);
@@ -170,7 +180,7 @@ public class CRUDStorage {
      * @return retorna true si se pudo eliminar la imagen y false si ocurrio algun
      *         error al intentar eliminar la imagen
      */
-    public static boolean deleteImg(String name) {
+    public boolean deleteImg(String name) {
         StorageOptions opciones = null;
         try {
             FileInputStream servicioCuentas = new FileInputStream(rutaCredenciales);
@@ -198,7 +208,7 @@ public class CRUDStorage {
      * @param bytes imagen que se va a enviar al Firebase Storage convertida a un arreglo de bytes
      * @return      retorna el nombre de la imagen
      */
-    public static String actualizarImg(String name, byte[] bytes) {
+    public String actualizarImg(String name, byte[] bytes) {
         StorageOptions opciones = null;
         try {
             FileInputStream servicioCuentas = new FileInputStream(rutaCredenciales);
@@ -231,7 +241,7 @@ public class CRUDStorage {
      * @param newtimeRefresh  DateTime de la ultima ves que fue modificado
      * @return retorna true si no hubo cambios en la hora que fue modificada
      */
-    public static boolean validarCambioimg(String nameImg,String oldTimeRefresh){
+    public boolean validarCambioimg(String nameImg,String oldTimeRefresh){
         try {
         String timeRefresh=StorageClient.getInstance().bucket(bucketName).get(nameImg).getUpdateTimeOffsetDateTime().toString();    
         if(timeRefresh.equals(oldTimeRefresh)){

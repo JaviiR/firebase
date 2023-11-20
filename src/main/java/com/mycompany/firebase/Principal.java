@@ -22,7 +22,6 @@ public class Principal {
           e.printStackTrace();
           }
           new listProducts().setVisible(true);
-         
 
         /*
          * conexion.Conectar();
