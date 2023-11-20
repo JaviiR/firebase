@@ -6,17 +6,20 @@ import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.Firestore;
 import com.google.firebase.cloud.FirestoreClient;
 import com.mycompany.firebase.CRUD.CRUDFireStore;
+import com.mycompany.firebase.conection.ConexionFactory;
 import com.mycompany.firebase.conection.conexion;
 
 public class DataUpdaterListProducts extends Thread {
     private int i = 1;
-    CRUDFireStore firestore=new CRUDFireStore();
+     Firestore firestore=ConexionFactory.getConexionFirebase();
+        CRUDFireStore firebaseCRUD=CRUDFireStore.getCRUDFireStore();
+
 
     public void agregarObjetos(JTable tabla){
-        conexion.getConexion();
         
-        Firestore db=FirestoreClient.getFirestore();
-        DocumentReference docRef=db.collection("products").document("");
+        
+        
+        DocumentReference docRef=firestore.collection("products").document("");
         
     }
     

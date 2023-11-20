@@ -373,6 +373,6 @@ public class CRUDFireStore {
         return listaTemp;
     }
 
-
+}
     
 
