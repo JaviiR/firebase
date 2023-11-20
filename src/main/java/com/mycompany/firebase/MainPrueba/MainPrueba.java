@@ -5,15 +5,17 @@ import com.google.cloud.firestore.DocumentChange;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.ListenerRegistration;
 import com.google.firebase.cloud.FirestoreClient;
+import com.mycompany.firebase.CRUD.CRUDFireStore;
+import com.mycompany.firebase.conection.ConexionFactory;
 import com.mycompany.firebase.conection.conexion;
 
 public class MainPrueba {
     public static void main(String[] args) {
         int i = 1;
-        conexion.getConexion();
-        Firestore db = FirestoreClient.getFirestore();
+        Firestore firestore=ConexionFactory.getConexionFirebase();
+        CRUDFireStore firebaseCRUD=CRUDFireStore.getCRUDFireStore();
 
-        CollectionReference docRef = db.collection("products");
+        CollectionReference docRef = firestore.collection("products");
 
         // Registrar un listener para cambios en el documento
         ListenerRegistration reg = docRef.addSnapshotListener((snapshots, e) -> {
